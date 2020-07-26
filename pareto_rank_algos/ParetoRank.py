@@ -62,6 +62,8 @@ class ParetoRank:
         self.utility_cols = utility_cols
         self.utility_min = utility_min
 
+        self.dominates_map = dict()
+
     """
         returns whether the given id is dominated by the send id
 
@@ -72,22 +74,27 @@ class ParetoRank:
     def dominates(self, id1, id2):
         row1 = self.data[self.data[self.id_col] == id1]
         row2 = self.data[self.data[self.id_col] == id2]
-        condition1 = True
-        condition2 = False
-        for col_i in range(len(self.utility_cols)):
-            col_name = self.utility_cols[col_i]
-            J1i = row1[col_name].values[0]
-            J2i = row2[col_name].values[0]
-            
-            if J1i > J2i:
-                condition1 = False
-                break
-            
-            if J1i < J2i:
-                condition2 = True
-    
-        dominates = condition1 and condition2
-        return dominates
+        key = f'{id1}-{id2}'
+        if key in self.dominates_map:
+             dom = self.dominates_map[key]
+        else:
+            condition1 = True
+            condition2 = False
+            for col_i in range(len(self.utility_cols)):
+                col_name = self.utility_cols[col_i]
+                J1i = row1[col_name].values[0]
+                J2i = row2[col_name].values[0]
+                
+                if J1i > J2i:
+                    condition1 = False
+                    break
+                
+                if J1i < J2i:
+                    condition2 = True
+        
+            dom = condition1 and condition2
+            self.dominates_map[key] = dom
+        return dom
 
     """
         checks if a given row index is dominated any other datapoint
@@ -127,10 +134,11 @@ class ParetoRank:
         pareto_front = []
         while (len(self.data > 0)):
             print(f'Running pass {curr_rank}...')
+            print(pareto_front)
             self.data = self.data_orig.copy()
             self.data = self.data[~self.data[self.id_col].isin(pareto_front)]
             for i in self.data[self.id_col].values:
-                print(f'Checking {self.id_col} == {i}...')
+                #print(f'Checking {self.id_col} == {i}...')
                 if not (self.is_dominated(i)):
                     rowi = self.data[self.data[self.id_col] == i]
                     idi = rowi[self.id_col].values[0]
