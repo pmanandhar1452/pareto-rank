@@ -96,6 +96,7 @@ class ParetoRank:
         dom = False
         rowi = self.data[self.data[self.id_col] == i]
         idi = rowi[self.id_col].values[0]
+        print(f'is_dominated ({i}) with {len(self.data)} rows')
         for j in self.data[self.id_col].values:
             if i == j:
                 continue
@@ -111,12 +112,13 @@ class ParetoRank:
         self.data = pandas.read_csv(
             self.input_file, usecols=[self.id_col] + self.utility_cols)
 
-        self.data_orig = self.data.copy()
-        
         # if a given column is not to be minimized, invert the data
         for col_i in range(len(self.utility_cols)):
             if not self.utility_min[col_i]:
                 self.data[self.utility_cols[col_i]] = -self.data[self.utility_cols[col_i]]
+        
+        self.data = self.data.sort_values(self.utility_cols, ascending=False)
+        self.data_orig = self.data.copy()
 
         ofp = open(self.output_file, 'w')
         ofp.write(f'{self.id_col},rank\n')
