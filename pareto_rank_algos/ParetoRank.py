@@ -94,11 +94,13 @@ class ParetoRank:
     """
     def is_dominated(self, i):
         dom = False
-        idi = self.data[self.id_col][i]
+        rowi = self.data[self.data[self.id_col] == i]
+        idi = rowi[self.id_col].values[0]
         for j in self.data[self.id_col].values:
             if i == j:
                 continue
-            idj = self.data[self.id_col][j]
+            rowj = self.data[self.data[self.id_col] == j]
+            idj = rowj[self.id_col].values[0]
             if self.dominates(idj, idi):
                 dom = True
                 break
@@ -108,6 +110,8 @@ class ParetoRank:
         # load data
         self.data = pandas.read_csv(
             self.input_file, usecols=[self.id_col] + self.utility_cols)
+
+        self.data_orig = self.data.copy()
         
         # if a given column is not to be minimized, invert the data
         for col_i in range(len(self.utility_cols)):
@@ -118,13 +122,21 @@ class ParetoRank:
         ofp.write(f'{self.id_col},rank\n')
         
         curr_rank = 1
+        pareto_front = []
         while (len(self.data > 0)):
-            pareto_front = []
+            print(f'Running pass {curr_rank}...')
+            self.data = self.data_orig.copy()
+            self.data = self.data[~self.data[self.id_col].isin(pareto_front)]
             for i in self.data[self.id_col].values:
+                print(f'Checking {self.id_col} == {i}...')
                 if not (self.is_dominated(i)):
-                    ofp.write(f'{self.data[self.id_col][i]}, {curr_rank}\n')
+                    rowi = self.data[self.data[self.id_col] == i]
+                    idi = rowi[self.id_col].values[0]
+                    ofp.write(f'{idi}, {curr_rank}\n')
                     pareto_front.append(i)
-            self.data = self.data.drop(pareto_front)        
+                else:
+                    self.data = self.data.drop(self.data[self.data[self.id_col]==i].index)
             curr_rank += 1
+            print('\n')
 
         ofp.close()
