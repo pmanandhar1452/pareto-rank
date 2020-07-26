@@ -64,7 +64,7 @@ class ParetoRank:
 
     def perform_ranking(self):
         self.data = pandas.read_csv(
-            self.input_file, usecols=[self.id_cols] + self.utility_cols)
+            self.input_file, usecols=[self.id_col] + self.utility_cols)
         ofp = open(self.output_file, 'w')
         ofp.write(f'{self.id_col},rank\n')
         ofp.close()
