@@ -44,7 +44,8 @@ class TestParetoRank(unittest.TestCase):
         pr_obj.perform_ranking()
         data_out_test = pandas.read_csv(TEMP_OUT_PATH)
         data_out_refr = pandas.read_csv(TEST_IN_PATH)
-        self.assertEqual(len(data_out_test), len(data_out_refr))
+        self.assertEqual(len(data_out_test), len(data_out_refr), 
+            "Output number of rowsdon't match")
 
 if __name__ == '__main__':
     unittest.main()

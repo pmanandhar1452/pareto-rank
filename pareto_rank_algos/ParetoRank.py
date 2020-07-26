@@ -67,4 +67,6 @@ class ParetoRank:
             self.input_file, usecols=[self.id_col] + self.utility_cols)
         ofp = open(self.output_file, 'w')
         ofp.write(f'{self.id_col},rank\n')
+        
+
         ofp.close()
