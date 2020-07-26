@@ -63,9 +63,46 @@ class ParetoRank:
         self.utility_min = utility_min
 
     """
-        returns whether the given id is dominated in the current data set
+        returns whether the given id is dominated by the send id
+
+        vector J1 dominates J2 iff 
+            J1i <= J2i forall i, and 
+            J1i < J2i for at least 1 i
     """
-    #def __is_dominated(self):
+    def dominates(self, id1, id2):
+        row1 = self.data[self.data[self.id_col] == id1]
+        row2 = self.data[self.data[self.id_col] == id2]
+        condition1 = True
+        condition2 = False
+        for col_i in range(len(self.utility_cols)):
+            col_name = self.utility_cols[col_i]
+            J1i = row1[col_name].values[0]
+            J2i = row2[col_name].values[0]
+            
+            if J1i > J2i:
+                condition1 = False
+                break
+            
+            if J1i < J2i:
+                condition2 = True
+    
+        dominates = condition1 and condition2
+        return dominates
+
+    """
+        checks if a given row index is dominated any other datapoint
+    """
+    def is_dominated(self, i):
+        dom = False
+        idi = self.data[self.id_col][i]
+        for j in range(len(self.data)):
+            if i == j:
+                continue
+            idj = self.data[self.id_col][j]
+            if self.dominates(idj, idi):
+                dom = True
+                break
+        return dom
 
     def perform_ranking(self):
         # load data
@@ -81,6 +118,9 @@ class ParetoRank:
         ofp.write(f'{self.id_col},rank\n')
         
         for i in range(len(self.data)):
-            ofp.write(f'{self.data[self.id_col][i]}, {1}\n')
+            if (self.is_dominated(i)):
+                ofp.write(f'{self.data[self.id_col][i]}, {2}\n')
+            else:
+                ofp.write(f'{self.data[self.id_col][i]}, {1}\n')
 
         ofp.close()
