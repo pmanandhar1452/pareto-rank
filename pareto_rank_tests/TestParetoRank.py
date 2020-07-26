@@ -40,12 +40,14 @@ class TestParetoRank(unittest.TestCase):
             os.makedirs(TEMP_FOLDER)
 
         pr_obj = ParetoRank.ParetoRank(
-            TEST_IN_PATH, TEMP_OUT_PATH, 'id', [' v0', ' v1'], [True, True])
+            TEST_IN_PATH, TEMP_OUT_PATH, 'id', ['v0', 'v1'], [True, True])
         pr_obj.perform_ranking()
         data_out_test = pandas.read_csv(TEMP_OUT_PATH)
         data_out_refr = pandas.read_csv(TEST_IN_PATH)
         self.assertEqual(len(data_out_test), len(data_out_refr), 
             "Output number of rowsdon't match")
+        for i in range(len(data_out_test)):
+            self.assertEqual(data_out_test['rank'][i], data_out_refr['manual_rank'][i])
 
 if __name__ == '__main__':
     unittest.main()

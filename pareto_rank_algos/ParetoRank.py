@@ -62,11 +62,25 @@ class ParetoRank:
         self.utility_cols = utility_cols
         self.utility_min = utility_min
 
+    """
+        returns whether the given id is dominated in the current data set
+    """
+    #def __is_dominated(self):
+
     def perform_ranking(self):
+        # load data
         self.data = pandas.read_csv(
             self.input_file, usecols=[self.id_col] + self.utility_cols)
+        
+        # if a given column is not to be minimized, invert the data
+        for col_i in range(len(self.utility_cols)):
+            if not self.utility_min[col_i]:
+                self.data[self.utility_cols[col_i]] = -self.data[self.utility_cols[col_i]]
+
         ofp = open(self.output_file, 'w')
         ofp.write(f'{self.id_col},rank\n')
         
+        for i in range(len(self.data)):
+            ofp.write(f'{self.data[self.id_col][i]}, {1}\n')
 
         ofp.close()

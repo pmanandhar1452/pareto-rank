@@ -35,11 +35,11 @@ def boundary_fn (x, y):
     return rv
 
 with open('test_data_2d_minmin000.csv', 'w') as fp:
-    fp.write('id, v0, v1, manual_rank\n')
+    fp.write('id,v0,v1,manual_rank\n')
     for i in range(20):
         valid = False
         while not valid:
             x = random.uniform(0.1, 10)
             y = random.uniform(0.1, 10)
             valid = boundary_fn(x, y)
-        fp.write(f'{i}, {x}, {y}, \n')
+        fp.write(f'{i},{x},{y}, \n')
