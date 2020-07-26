@@ -45,9 +45,11 @@ class TestParetoRank(unittest.TestCase):
         data_out_test = pandas.read_csv(TEMP_OUT_PATH)
         data_out_refr = pandas.read_csv(TEST_IN_PATH)
         self.assertEqual(len(data_out_test), len(data_out_refr), 
-            "Output number of rowsdon't match")
-        for i in range(len(data_out_test)):
-            self.assertEqual(data_out_test['rank'][i], data_out_refr['manual_rank'][i])
+            "Output number of rows don't match")
+        for i in data_out_test['id'].values:
+            row1 = data_out_test[data_out_test['id'] == i]
+            row2 = data_out_refr[data_out_refr['id'] == i]
+            self.assertEqual(row1['rank'].values[0], row2['manual_rank'].values[0])
 
 if __name__ == '__main__':
     unittest.main()

@@ -95,7 +95,7 @@ class ParetoRank:
     def is_dominated(self, i):
         dom = False
         idi = self.data[self.id_col][i]
-        for j in range(len(self.data)):
+        for j in self.data[self.id_col].values:
             if i == j:
                 continue
             idj = self.data[self.id_col][j]
@@ -117,10 +117,14 @@ class ParetoRank:
         ofp = open(self.output_file, 'w')
         ofp.write(f'{self.id_col},rank\n')
         
-        for i in range(len(self.data)):
-            if (self.is_dominated(i)):
-                ofp.write(f'{self.data[self.id_col][i]}, {2}\n')
-            else:
-                ofp.write(f'{self.data[self.id_col][i]}, {1}\n')
+        curr_rank = 1
+        while (len(self.data > 0)):
+            pareto_front = []
+            for i in self.data[self.id_col].values:
+                if not (self.is_dominated(i)):
+                    ofp.write(f'{self.data[self.id_col][i]}, {curr_rank}\n')
+                    pareto_front.append(i)
+            self.data = self.data.drop(pareto_front)        
+            curr_rank += 1
 
         ofp.close()
