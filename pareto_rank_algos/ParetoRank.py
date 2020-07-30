@@ -28,14 +28,17 @@ class ParetoRank:
     """
         Performs Pareto based ranking of given tradespace points.
 
+        To use the class, construct the object and call perform_ranking().
+
         Args:
             input_file  (str): 
                 path to file that contains the input data. A CSV 
                 (comma separated value) file is expected.
 
-            output_file (str): path to file to output data to (existing
-                 data will be overwritten). The output file is a CSV file with
-                 columnns: "id" and "rank"
+            output_file (str): path to file to output data to. The output file 
+                is a CSV file with columnns: "id" and "rank". If the data
+                file already exists, the data in the file is used to cull
+                the output
             
             id_col (str): name of column containing the unqiue identifier. An 
                 integer valued identifier is expected. Please note that column
@@ -50,6 +53,7 @@ class ParetoRank:
             utility_minmax (bool array): array of True or False values in the same
                 order as utility_cols that indicates whether this utility is to
                 be minimized or maximmized.
+
     """
     def __init__(self, 
         input_file, output_file, \
@@ -114,10 +118,35 @@ class ParetoRank:
                 break
         return dom
 
+    """
+        prunes data in self.data based on existing data in self.output_file
+        and returns the maximum rank in the output_file
+
+        only prunes data that is one rank lower than that already exists in the 
+        file to be sure that the previous run was not stopped before the 
+        previous run ended
+    """
+    def prune_existing_data(self):
+        if os.exists(self.output_file):
+            max_rank = existing_data["rank"].max()
+            existing_data = existing_data[~existing_data["rank"].isin(max_rank)]
+            existing_data = pandas.read_csv(
+                    self.output_file, usecols=[self.id_col] + ["rank"])
+            self.data = self.data[~self.data[self.id_col].isin(existing_data[self.id_col])]
+            max_rank = existing_data["rank"].max()
+        else:
+            max_rank = 0
+        return max_rank
+
+    """
+        performs Pareto ranking and outputs data to files
+    """
     def perform_ranking(self):
         # load data
         self.data = pandas.read_csv(
             self.input_file, usecols=[self.id_col] + self.utility_cols)
+
+        self.prune_existing_data()
 
         # if a given column is not to be minimized, invert the data
         for col_i in range(len(self.utility_cols)):
@@ -127,7 +156,7 @@ class ParetoRank:
         self.data = self.data.sort_values(self.utility_cols, ascending=False)
         self.data_orig = self.data.copy()
 
-        ofp = open(self.output_file, 'w')
+        ofp = open(self.output_file, 'a+')
         ofp.write(f'{self.id_col},rank\n')
         
         curr_rank = 1
