@@ -22,6 +22,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 '''
 
+import os
+import math
 import pandas
 
 class ParetoRank:
@@ -127,16 +129,19 @@ class ParetoRank:
         previous run ended
     """
     def prune_existing_data(self):
-        if os.exists(self.output_file):
-            max_rank = existing_data["rank"].max()
-            existing_data = existing_data[~existing_data["rank"].isin(max_rank)]
+        if os.path.exists(self.output_file):
             existing_data = pandas.read_csv(
                     self.output_file, usecols=[self.id_col] + ["rank"])
+            max_rank = existing_data["rank"].max()
+            existing_data = existing_data[~existing_data["rank"].isin([max_rank])]
             self.data = self.data[~self.data[self.id_col].isin(existing_data[self.id_col])]
             max_rank = existing_data["rank"].max()
+            if math.isnan(max_rank):
+                max_rank = 0
+            existing_data.to_csv(self.output_file, columns=[self.id_col, "rank"], index=False)
         else:
             max_rank = 0
-        return max_rank
+        return int(max_rank)
 
     """
         performs Pareto ranking and outputs data to files
@@ -146,8 +151,8 @@ class ParetoRank:
         self.data = pandas.read_csv(
             self.input_file, usecols=[self.id_col] + self.utility_cols)
 
-        self.prune_existing_data()
-
+        max_rank_existing = self.prune_existing_data()
+        
         # if a given column is not to be minimized, invert the data
         for col_i in range(len(self.utility_cols)):
             if not self.utility_min[col_i]:
@@ -156,10 +161,13 @@ class ParetoRank:
         self.data = self.data.sort_values(self.utility_cols, ascending=False)
         self.data_orig = self.data.copy()
 
-        ofp = open(self.output_file, 'a+')
-        ofp.write(f'{self.id_col},rank\n')
+        if os.path.exists(self.output_file):
+            ofp = open(self.output_file, 'a+')
+        else:
+            ofp = open(self.output_file, 'a+')
+            ofp.write(f'{self.id_col},rank\n')
         
-        curr_rank = 1
+        curr_rank = max_rank_existing + 1
         pareto_front = []
         while (len(self.data > 0)):
             print(f'Running pass {curr_rank}...')

@@ -39,6 +39,21 @@ class TestParetoRank(unittest.TestCase):
         if not os.path.exists(TEMP_FOLDER):
             os.makedirs(TEMP_FOLDER)
 
+        os.remove(TEMP_OUT_PATH)
+
+        pr_obj = ParetoRank.ParetoRank(
+            TEST_IN_PATH, TEMP_OUT_PATH, 'id', ['v0', 'v1'], [True, True])
+        pr_obj.perform_ranking()
+        data_out_test = pandas.read_csv(TEMP_OUT_PATH)
+        data_out_refr = pandas.read_csv(TEST_IN_PATH)
+        self.assertEqual(len(data_out_test), len(data_out_refr), 
+            "Output number of rows don't match")
+        for i in data_out_test['id'].values:
+            row1 = data_out_test[data_out_test['id'] == i]
+            row2 = data_out_refr[data_out_refr['id'] == i]
+            self.assertEqual(row1['rank'].values[0], row2['manual_rank'].values[0])
+
+        # repeat to test again with existing data
         pr_obj = ParetoRank.ParetoRank(
             TEST_IN_PATH, TEMP_OUT_PATH, 'id', ['v0', 'v1'], [True, True])
         pr_obj.perform_ranking()
